@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% if current_tag %}{{ current_tag }} Prompts{% else %}All Prompts{% endif %}</h1>
+    <p class="subtitle">Manage your system prompts and templates.</p>
+</div>
+
+<div class="prompts-grid">
+    {% for prompt in prompts %}
+        <div class="prompt-card glass-panel">
+            <div class="card-header">
+                <span class="tag"><i class="fa-solid fa-hashtag"></i> {{ prompt.tag }}</span>
+                <form action="{{ url_for('delete_prompt', id=prompt.id) }}" method="POST" class="delete-form" onsubmit="return confirm('Bu promptu silmek istediğinize emin misiniz?');">
+                    <button type="submit" class="btn-icon delete-btn"><i class="fa-solid fa-trash-can"></i></button>
+                </form>
+            </div>
+            <h3>{{ prompt.title }}</h3>
+            <div class="prompt-text-container">
+                <pre class="prompt-text">{{ prompt.content }}</pre>
+            </div>
+            <div class="card-footer">
+                <span class="date">{{ prompt.created_at.strftime('%b %d, %Y') }}</span>
+                <button class="btn btn-secondary copy-btn" onclick="copyToClipboard(`{{ prompt.content | replace('`', '\\`') }}`, this)">
+                    <i class="fa-solid fa-copy"></i> Copy
+                </button>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state glass-panel">
+            <div class="empty-icon">
+                <i class="fa-solid fa-ghost"></i>
+            </div>
+            <h3>No Prompts Found</h3>
+            <p>You haven't added any prompts in this category yet.</p>
+            <button class="btn btn-primary mt-3" onclick="openAddModal()">Add Your First Prompt</button>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

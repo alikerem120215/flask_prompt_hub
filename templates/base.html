@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Hub</title>
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-bolt glow-icon"></i>
+                <h2>Prompt<span>Hub</span></h2>
+            </div>
+            
+            <nav class="main-nav">
+                <a href="{{ url_for('index') }}" class="nav-item {% if not current_tag %}active{% endif %}">
+                    <i class="fa-solid fa-house"></i> All Prompts
+                </a>
+                
+                <div class="nav-section">
+                    <h3>Categories</h3>
+                    <div class="tags-list">
+                        {% for t in tags %}
+                            <a href="{{ url_for('index', tag=t) }}" class="nav-item {% if current_tag == t %}active{% endif %}">
+                                <i class="fa-solid fa-hashtag"></i> {{ t }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button class="btn btn-primary w-100" onclick="openAddModal()">
+                    <i class="fa-solid fa-plus"></i> New Prompt
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="search-bar glass-panel">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search prompts..." onkeyup="filterPrompts()">
+                </div>
+                <div class="user-profile">
+                    <div class="avatar">AG</div>
+                </div>
+            </header>
+            
+            <div class="content-wrapper">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} glass-panel">
+                                    {{ message }}
+                                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Prompt Modal -->
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Create New Prompt</h2>
+                <button class="close-modal" onclick="closeAddModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form action="{{ url_for('add_prompt') }}" method="POST">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required placeholder="e.g. Python Code Reviewer">
+                </div>
+                <div class="form-group">
+                    <label for="tag">Category Tag</label>
+                    <input type="text" id="tag" name="tag" placeholder="e.g. Coding">
+                </div>
+                <div class="form-group">
+                    <label for="content">Prompt Content</label>
+                    <textarea id="content" name="content" rows="6" required placeholder="Write your system prompt here..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Save Prompt</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        function openAddModal() {
+            document.getElementById('addModal').style.display = 'flex';
+        }
+        
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            var modal = document.getElementById('addModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function filterPrompts() {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toLowerCase();
+            var cards = document.getElementsByClassName("prompt-card");
+            
+            for (var i = 0; i < cards.length; i++) {
+                var title = cards[i].getElementsByTagName("h3")[0];
+                var content = cards[i].getElementsByClassName("prompt-text")[0];
+                if (title.innerHTML.toLowerCase().indexOf(filter) > -1 || content.innerHTML.toLowerCase().indexOf(filter) > -1) {
+                    cards[i].style.display = "";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+        }
+
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(function() {
+                var originalHTML = btnElement.innerHTML;
+                btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                btnElement.classList.add('copied');
+                setTimeout(function() {
+                    btnElement.innerHTML = originalHTML;
+                    btnElement.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
